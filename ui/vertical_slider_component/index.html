@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body {
+    margin: 0;
+    padding: 4px 0 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    font-family: "Source Sans Pro", sans-serif;
+    background: transparent;
+    overflow: hidden;
+  }
+  .value-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ef4444;
+    margin-bottom: 4px;
+    text-align: center;
+    min-height: 18px;
+  }
+  input[type="range"] {
+    writing-mode: vertical-lr;
+    direction: rtl;
+    appearance: slider-vertical;
+    -webkit-appearance: slider-vertical;
+    width: 28px;
+    cursor: pointer;
+    background: transparent;
+  }
+  .cat-label {
+    font-size: 11px;
+    color: #475569;
+    font-weight: 500;
+    margin-top: 4px;
+    text-align: center;
+    min-height: 14px;
+  }
+</style>
+</head>
+<body>
+  <div class="value-label" id="valLabel"></div>
+  <input type="range" id="slider" />
+  <div class="cat-label" id="catLabel"></div>
+
+  <script>
+    // Streamlit bi-directional component protocol
+    function sendMsg(type, data) {
+      var msg = Object.assign({isStreamlitMessage: true, type: type}, data || {});
+      window.parent.postMessage(msg, "*");
+    }
+
+    function init() {
+      sendMsg("streamlit:componentReady", {apiVersion: 1});
+    }
+
+    function setFrameHeight() {
+      sendMsg("streamlit:setFrameHeight", {height: document.body.scrollHeight});
+    }
+
+    function sendValue(value) {
+      sendMsg("streamlit:setComponentValue", {value: value});
+    }
+
+    var _options = null;
+
+    window.addEventListener("message", function(event) {
+      if (!event.data || event.data.type !== "streamlit:render") return;
+
+      var args = event.data.args;
+      var slider = document.getElementById("slider");
+      var valLabel = document.getElementById("valLabel");
+      var catLabel = document.getElementById("catLabel");
+
+      slider.min = args.min_value;
+      slider.max = args.max_value;
+      slider.step = args.step || 1;
+      slider.style.height = (args.height || 180) + "px";
+      slider.value = args.default_value;
+
+      _options = (args.options && args.options.length > 0) ? args.options : null;
+
+      // Display value
+      valLabel.textContent = slider.value;
+      if (_options) {
+        catLabel.textContent = _options[parseInt(slider.value)] || "";
+      } else {
+        catLabel.textContent = "";
+      }
+
+      setFrameHeight();
+    });
+
+    document.getElementById("slider").addEventListener("input", function(e) {
+      var val = parseInt(e.target.value);
+      document.getElementById("valLabel").textContent = val;
+
+      if (_options) {
+        document.getElementById("catLabel").textContent = _options[val] || "";
+      }
+
+      sendValue(val);
+    });
+
+    init();
+  </script>
+</body>
+</html>
