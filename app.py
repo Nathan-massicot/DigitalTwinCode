@@ -1,16 +1,9 @@
 import streamlit as st
 
-from data.mock_patients import generate_cohort
-from engine.predictor import predict
-from engine.scoring import compute_health_score
-from ui.sliders import render_sliders
-from ui.health_gauge import render_health_gauge
-from ui.target_cards import render_target_cards
-
 st.set_page_config(
     page_title="Digital Twin — Stroke Rehab",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 # Custom CSS for clean medical style
@@ -34,43 +27,93 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# --- Navigation ---
+page = st.sidebar.radio("Navigation", [
+    "Digital Twin",
+    "Digital Twin Prototype (mock)",
+    "Model Comparison",
+])
 
-@st.cache_data
-def load_cohort():
-    return generate_cohort(n=200, seed=42)
+if page == "Digital Twin":
+    from data.real_features import REAL_FEATURE_DEFS
+    from engine.real_predictor import predict_patient
+    from engine.scoring import compute_real_health_score
+    from models.results import get_trained_best_models
+    from ui.sliders import render_sliders
+    from ui.health_gauge import render_health_gauge
+    from ui.target_cards import render_real_target_cards
+
+    st.title("Digital Twin — Stroke Rehabilitation")
+
+    with st.spinner("Loading models..."):
+        trained_models = get_trained_best_models()
 
 
-cohort = load_cohort()
+    # --- Parameters ---
+    st.header("Patient Parameters (21 Features)")
+    patient_values = render_sliders(feature_defs=REAL_FEATURE_DEFS, key_prefix="real")
 
-# --- Header ---
-st.title("Digital Twin — Stroke Rehabilitation Prototype")
+    st.markdown("---")
 
-horizon = st.radio(
-    "Prediction Horizon",
-    options=["T0 — Rehab Entry", "T1 — Day 7-14", "OUTCOME — Discharge"],
-    index=2,
-    horizontal=True,
-)
-horizon_key = horizon.split(" —")[0].strip()
+    # --- Predictions ---
+    predictions = predict_patient(patient_values, trained_models)
 
-st.markdown("---")
+    health = compute_real_health_score(predictions)
+    st.header("Prediction of Health Status")
+    st.markdown(
+        "Composite score (0–100) combining the five predicted outcomes, "
+        "each rescaled to 0–100 and weighted by clinical relevance: "
+        "**FIM Total (30%)**, **FIM Motor (20%)**, **FIM Cognitive (15%)**, "
+        "**FIM Gain (20%)**, and **Return Home probability (15%)**. "
+        "The boxplot shows the confidence interval estimated from the spread of the components."
+    )
+    render_health_gauge(health)
 
-# --- Parameters ---
-st.header("Patient Parameters (Top 20 Features by Importance)")
-patient_values = render_sliders()
+    st.markdown("---")
 
-st.markdown("---")
+    st.header("Predicted Outcomes")
+    render_real_target_cards(predictions)
 
-# --- Predictions ---
-predictions = predict(patient_values, cohort, k=20, horizon=horizon_key)
-health = compute_health_score(predictions)
+elif page == "Digital Twin Prototype (mock)":
+    from data.mock_patients import generate_cohort
+    from engine.predictor import predict
+    from engine.scoring import compute_health_score
+    from ui.sliders import render_sliders
+    from ui.health_gauge import render_health_gauge
+    from ui.target_cards import render_target_cards
 
-# --- Health Status ---
-st.header("Prediction of Health Status")
-render_health_gauge(health)
+    @st.cache_data
+    def load_cohort():
+        return generate_cohort(n=200, seed=42)
 
-st.markdown("---")
+    cohort = load_cohort()
 
-# --- Target Values ---
-st.header("Prediction of Target Values")
-render_target_cards(predictions)
+    st.title("Digital Twin — Stroke Rehabilitation Prototype")
+
+    horizon = st.radio(
+        "Prediction Horizon",
+        options=["T0 — Rehab Entry", "T1 — Day 7-14", "OUTCOME — Discharge"],
+        index=2,
+        horizontal=True,
+    )
+    horizon_key = horizon.split(" —")[0].strip()
+
+    st.header("Patient Parameters (Top 20 Features by Importance)")
+    patient_values = render_sliders()
+
+    st.markdown("---")
+
+    predictions = predict(patient_values, cohort, k=20, horizon=horizon_key)
+    health = compute_health_score(predictions)
+
+    st.header("Prediction of Health Status")
+    render_health_gauge(health)
+
+    st.markdown("---")
+
+    st.header("Prediction of Target Values")
+    render_target_cards(predictions)
+
+elif page == "Model Comparison":
+    from ui.page_model_comparison import render_model_comparison
+    render_model_comparison()
