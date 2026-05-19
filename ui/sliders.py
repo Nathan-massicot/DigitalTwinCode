@@ -108,26 +108,36 @@ LABEL_CSS = """
 """
 
 
-def render_sliders() -> dict:
-    """Render 20 vertical parameter sliders (10 per row) and return current values."""
+def render_sliders(feature_defs=None, key_prefix="param") -> dict:
+    """Render vertical parameter sliders and return current values.
+
+    feature_defs: list of dicts with keys name, label (optional), min, max, default, type, options.
+                  If None, uses mock FEATURE_DEFS.
+    key_prefix: prefix for streamlit widget keys to avoid collisions.
+    Returns: dict mapping feature name to numeric value.
+    """
+    if feature_defs is None:
+        feature_defs = FEATURE_DEFS
+
     st.markdown(LABEL_CSS, unsafe_allow_html=True)
 
     values = {}
-    cols_per_row = 10
-    rows = [FEATURE_DEFS[i:i + cols_per_row] for i in range(0, len(FEATURE_DEFS), cols_per_row)]
+    cols_per_row = 7
+    rows = [feature_defs[i:i + cols_per_row] for i in range(0, len(feature_defs), cols_per_row)]
 
     for row_defs in rows:
-        cols = st.columns(len(row_defs), gap="small")
+        cols = st.columns(cols_per_row, gap="small")
         for col, feat in zip(cols, row_defs):
             with col:
+                display_name = feat.get("label", feat["name"])
                 st.markdown(
-                    f'<div class="vs-label">{feat["name"]}</div>',
+                    f'<div class="vs-label">{display_name}</div>',
                     unsafe_allow_html=True,
                 )
 
                 options = feat.get("options", []) if feat["type"] == "categorical" else []
 
-                key = f"param_{feat['name']}"
+                key = f"{key_prefix}_{feat['name']}".replace("__", "_")
 
                 result = _vertical_slider(
                     default={"value": feat["default"]},
@@ -147,9 +157,14 @@ def render_sliders() -> dict:
                 val = result.value if result.value is not None else feat["default"]
                 val = int(val)
 
-                if feat["type"] == "categorical":
-                    idx = max(0, min(val, len(feat["options"]) - 1))
-                    values[feat["name"]] = feat["options"][idx]
+                if feat["type"] == "categorical" and feat.get("options"):
+                    # For the mock prototype, return string label
+                    if key_prefix == "param":
+                        idx = max(0, min(val, len(feat["options"]) - 1))
+                        values[feat["name"]] = feat["options"][idx]
+                    else:
+                        # For real data, return numeric index
+                        values[feat["name"]] = val
                 else:
                     values[feat["name"]] = val
 

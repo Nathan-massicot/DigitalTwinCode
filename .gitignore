@@ -8,4 +8,13 @@ wheels/
 
 # Virtual environments
 .venv
-.claude 
+.claude
+
+# macOS
+.DS_Store
+
+# Clinical data (not for publication)
+data/Feature_prototype_ML_ready.csv
+
+# Internal planning docs
+PROMPT_MODEL_IMPLEMENTATION.md
