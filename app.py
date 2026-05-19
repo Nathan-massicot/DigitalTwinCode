@@ -32,6 +32,7 @@ page = st.sidebar.radio("Navigation", [
     "Digital Twin",
     "Digital Twin Prototype (mock)",
     "Model Comparison",
+    "Sample Size (pmsampsize)",
 ])
 
 if page == "Digital Twin":
@@ -117,3 +118,7 @@ elif page == "Digital Twin Prototype (mock)":
 elif page == "Model Comparison":
     from ui.page_model_comparison import render_model_comparison
     render_model_comparison()
+
+elif page == "Sample Size (pmsampsize)":
+    from ui.page_pmsampsize import render_pmsampsize
+    render_pmsampsize()
