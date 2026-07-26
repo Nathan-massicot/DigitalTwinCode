@@ -15,6 +15,3 @@ wheels/
 
 # Clinical data (not for publication)
 data/Feature_prototype_ML_ready.csv
-
-# Internal planning docs
-PROMPT_MODEL_IMPLEMENTATION.md

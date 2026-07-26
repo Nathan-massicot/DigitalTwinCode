@@ -9,6 +9,7 @@ from models.config import (
     ALGORITHMS,
     REGRESSION_TARGETS,
     CLASSIFICATION_TARGET,
+    DERIVED_MEANINGFUL_TARGET,
     TARGET_LABELS,
     ALGO_LABELS,
     ALGO_COLORS,
@@ -201,7 +202,7 @@ def _render_best_model_summary(results: dict):
             )
 
     # Classification: best by F1
-    for target in [CLASSIFICATION_TARGET, "DERIVED__meaningful_improvement"]:
+    for target in [CLASSIFICATION_TARGET, DERIVED_MEANINGFUL_TARGET]:
         best_key, best_f1 = None, -1.0
         for fs_name in FEATURE_SETS:
             for algo in ALGORITHMS:
@@ -313,7 +314,7 @@ def render_model_comparison():
     with tab_rh:
         _render_confusion_grid(results, CLASSIFICATION_TARGET, "Return Home — Confusion Matrices")
     with tab_mi:
-        _render_confusion_grid(results, "DERIVED__meaningful_improvement", "Meaningful Improvement (derived) — Confusion Matrices")
+        _render_confusion_grid(results, DERIVED_MEANINGFUL_TARGET, "Meaningful Improvement (derived) — Confusion Matrices")
 
     st.markdown("---")
 

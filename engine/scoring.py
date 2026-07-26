@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 
 from models.config import REGRESSION_TARGETS, CLASSIFICATION_TARGET
 

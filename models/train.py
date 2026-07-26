@@ -8,6 +8,8 @@ from sklearn.neighbors import KNeighborsRegressor, KNeighborsClassifier
 from sklearn.linear_model import Ridge, LogisticRegression
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 
+from models.config import DERIVED_MEANINGFUL_TARGET
+
 
 def get_model(algo: str, task: str):
     """Return a fresh model instance."""
@@ -101,7 +103,7 @@ def run_full_pipeline(df: pd.DataFrame, feature_sets: dict, algorithms: list,
                 meaningful_true = (gain_true >= meaningful_threshold).astype(int)
 
                 derived_metrics = compute_classification_metrics(meaningful_true, meaningful_pred)
-                results[(fs_name, algo, "DERIVED__meaningful_improvement")] = {
+                results[(fs_name, algo, DERIVED_MEANINGFUL_TARGET)] = {
                     "task": "classification_derived",
                     "y_true": meaningful_true,
                     "y_pred": meaningful_pred,

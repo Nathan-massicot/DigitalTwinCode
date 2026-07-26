@@ -4,26 +4,6 @@ import pandas as pd
 from data.mock_patients import FEATURE_NAMES, CATEGORICAL_MAP
 
 
-def _encode_features(df: pd.DataFrame) -> np.ndarray:
-    """Encode features to numeric, min-max normalize."""
-    encoded = []
-    for feat in FEATURE_NAMES:
-        col = df[feat]
-        if feat in CATEGORICAL_MAP:
-            options = CATEGORICAL_MAP[feat]
-            col_numeric = col.map({v: i for i, v in enumerate(options)}).astype(float)
-            col_min, col_max = 0, len(options) - 1
-        else:
-            col_numeric = col.astype(float)
-            col_min, col_max = col_numeric.min(), col_numeric.max()
-        if col_max - col_min > 0:
-            col_numeric = (col_numeric - col_min) / (col_max - col_min)
-        else:
-            col_numeric = col_numeric * 0.0
-        encoded.append(col_numeric.values)
-    return np.column_stack(encoded)
-
-
 def predict(patient_values: dict, cohort: pd.DataFrame, k: int = 20, horizon: str = "OUTCOME") -> dict:
     """Return predictions for the given patient against the cohort.
 

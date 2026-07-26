@@ -46,6 +46,7 @@ CLASSIFICATION_TARGET = "OUTCOME__return_home_yes_no"
 # Derived (not modelled):
 #   FIM gain = predicted FIM total discharge − T0__fim_total_score_at_entry
 #   Meaningful improvement = 1 if FIM gain >= MEANINGFUL_THRESHOLD else 0
+DERIVED_MEANINGFUL_TARGET = "DERIVED__meaningful_improvement"
 # Reference columns for ground truth:
 FIM_ENTRY_COL = "T0__fim_total_score_at_entry"
 FIM_GAIN_COL = "OUTCOME__fim_gain_discharge__minus__entry"
@@ -63,7 +64,7 @@ TARGET_LABELS = {
     "OUTCOME__fim_motor_at_discharge_target": "FIM Motor",
     "OUTCOME__fim_cognitive_at_discharge_target": "FIM Cognitive",
     "OUTCOME__return_home_yes_no": "Return Home",
-    "DERIVED__meaningful_improvement": "Meaningful Improvement",
+    DERIVED_MEANINGFUL_TARGET: "Meaningful Improvement",
 }
 
 ALGO_LABELS = {
