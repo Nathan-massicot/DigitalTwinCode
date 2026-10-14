@@ -3,6 +3,7 @@
 import pandas as pd
 import streamlit as st
 
+from data.mock_patients import generate_cohort, to_model_frame
 from models.config import (
     FEATURE_SETS,
     ALGORITHMS,
@@ -14,18 +15,17 @@ from models.config import (
 )
 from models.train import run_full_pipeline
 
-DATA_PATH = "data/Feature_prototype_ML_ready.csv"
-
 
 @st.cache_data
-def load_real_data() -> pd.DataFrame:
-    return pd.read_csv(DATA_PATH)
+def load_data() -> pd.DataFrame:
+    """Same simulated cohort as the mock Digital Twin page, in benchmark schema."""
+    return to_model_frame(generate_cohort(n=200, seed=42))
 
 
 @st.cache_resource
 def get_all_results() -> dict:
     """Run the full pipeline and cache results."""
-    df = load_real_data()
+    df = load_data()
     return run_full_pipeline(
         df=df,
         feature_sets=FEATURE_SETS,
@@ -36,12 +36,3 @@ def get_all_results() -> dict:
         fim_gain_col=FIM_GAIN_COL,
         meaningful_threshold=MEANINGFUL_THRESHOLD,
     )
-
-
-@st.cache_resource
-def get_trained_best_models() -> dict:
-    """Train the best model per target on all 20 patients. Cached."""
-    from engine.real_predictor import train_best_models
-    df = load_real_data()
-    results = get_all_results()
-    return train_best_models(df, results)

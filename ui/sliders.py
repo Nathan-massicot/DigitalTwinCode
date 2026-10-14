@@ -114,7 +114,7 @@ def render_sliders(feature_defs=None, key_prefix="param") -> dict:
     feature_defs: list of dicts with keys name, label (optional), min, max, default, type, options.
                   If None, uses mock FEATURE_DEFS.
     key_prefix: prefix for streamlit widget keys to avoid collisions.
-    Returns: dict mapping feature name to numeric value.
+    Returns: dict mapping feature name to value (option label for categorical features).
     """
     if feature_defs is None:
         feature_defs = FEATURE_DEFS
@@ -158,13 +158,8 @@ def render_sliders(feature_defs=None, key_prefix="param") -> dict:
                 val = int(val)
 
                 if feat["type"] == "categorical" and feat.get("options"):
-                    # For the mock prototype, return string label
-                    if key_prefix == "param":
-                        idx = max(0, min(val, len(feat["options"]) - 1))
-                        values[feat["name"]] = feat["options"][idx]
-                    else:
-                        # For real data, return numeric index
-                        values[feat["name"]] = val
+                    idx = max(0, min(val, len(feat["options"]) - 1))
+                    values[feat["name"]] = feat["options"][idx]
                 else:
                     values[feat["name"]] = val
 

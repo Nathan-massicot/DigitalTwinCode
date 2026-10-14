@@ -14,7 +14,7 @@ from models.config import (
     ALGO_LABELS,
     ALGO_COLORS,
 )
-from models.results import get_all_results, load_real_data
+from models.results import get_all_results, load_data
 
 
 # ---------------------------------------------------------------------------
@@ -290,16 +290,17 @@ def _render_health_score_rationale():
 # ---------------------------------------------------------------------------
 
 def render_model_comparison():
-    st.title("Model Comparison — LOOCV on 20 Real Patients")
+    st.title("Model Comparison — LOOCV on the Simulated Cohort")
     st.markdown(
         "Comparison of **3 algorithms** (k-NN, Ridge/Logistic, Random Forest) "
-        "across **3 feature subsets** (Small 5, Medium 12, Full 21). "
+        "across **3 feature subsets** (Small 5, Medium 12, Full 20), "
+        "on the same simulated 200-patient cohort as the mock Digital Twin. "
         "Validation: Leave-One-Out Cross-Validation."
     )
 
     with st.spinner("Running LOOCV pipeline (first load only)..."):
         results = get_all_results()
-    df = load_real_data()
+    df = load_data()
 
     st.markdown("---")
 

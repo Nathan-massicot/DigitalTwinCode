@@ -4,12 +4,8 @@ import pandas as pd
 from data.mock_patients import FEATURE_NAMES, CATEGORICAL_MAP
 
 
-def predict(patient_values: dict, cohort: pd.DataFrame, k: int = 20, horizon: str = "OUTCOME") -> dict:
-    """Return predictions for the given patient against the cohort.
-
-    horizon adjusts confidence spread:
-      T0 -> wider spread, T1 -> medium, OUTCOME -> tighter.
-    """
+def predict(patient_values: dict, cohort: pd.DataFrame, k: int = 20) -> dict:
+    """Return predictions for the given patient against the cohort."""
     patient_row = pd.DataFrame([patient_values])
     combined = pd.concat([cohort[FEATURE_NAMES], patient_row[FEATURE_NAMES]], ignore_index=True)
 
@@ -50,9 +46,6 @@ def predict(patient_values: dict, cohort: pd.DataFrame, k: int = 20, horizon: st
     meaningful_prob = float(np.average(neighbors["Meaningful Improvement"], weights=weights))
     return_home_prob = float(np.average(neighbors["_return_home_prob"], weights=weights))
 
-    # Horizon affects confidence (spread multiplier)
-    spread_factor = {"T0": 1.5, "T1": 1.0, "OUTCOME": 0.6}.get(horizon, 1.0)
-
     return {
         "fim_discharge": fim_discharge,
         "fim_gain": fim_gain,
@@ -60,5 +53,4 @@ def predict(patient_values: dict, cohort: pd.DataFrame, k: int = 20, horizon: st
         "return_home_prob": return_home_prob,
         "neighbors": neighbors,
         "weights": weights,
-        "spread_factor": spread_factor,
     }

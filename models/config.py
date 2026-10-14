@@ -1,8 +1,7 @@
 """Configuration: feature subsets, targets, algorithms."""
 
 # ---------------------------------------------------------------------------
-# Feature subsets (adapted to actual CSV column names)
-# "number of insurance claims" feature has been removed from the dataset.
+# Feature subsets (column names produced by data.mock_patients.to_model_frame)
 # ---------------------------------------------------------------------------
 
 FEATURES_SMALL = [
@@ -28,7 +27,7 @@ FEATURES_FULL = None  # Resolved at runtime: all T0__ columns
 FEATURE_SETS = {
     "Small (5)": FEATURES_SMALL,
     "Medium (12)": FEATURES_MEDIUM,
-    "Full (21)": FEATURES_FULL,
+    "Full (20)": FEATURES_FULL,
 }
 
 # ---------------------------------------------------------------------------

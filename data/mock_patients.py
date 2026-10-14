@@ -71,6 +71,18 @@ def generate_cohort(n: int = 200, seed: int = 42) -> pd.DataFrame:
     )
     return_home = (rng.random(n) < return_home_prob).astype(int)
 
+    # Discharge subscales: split the total gain between motor and cognitive in
+    # proportion to the room left on each subscale (drawn last so the columns
+    # above stay identical for a given seed).
+    motor_room = 91 - fim_motor
+    cog_room = 35 - fim_cognitive
+    motor_share = np.clip(
+        motor_room / np.maximum(motor_room + cog_room, 1) + rng.normal(0, 0.05, n), 0, 1
+    )
+    fim_motor_discharge = np.clip(np.round(fim_motor + fim_gain * motor_share), 13, 91)
+    fim_cognitive_discharge = np.clip(fim_discharge - fim_motor_discharge, 5, 35)
+    fim_motor_discharge = np.clip(fim_discharge - fim_cognitive_discharge, 13, 91)
+
     df = pd.DataFrame({
         "FIM Cognitive Subscale": fim_cognitive,
         "FIM Motor Subscale": fim_motor,
@@ -94,6 +106,8 @@ def generate_cohort(n: int = 200, seed: int = 42) -> pd.DataFrame:
         "Orientation (time/place/person)": orientation,
         # outcomes
         "FIM Total at Discharge": fim_discharge,
+        "FIM Motor at Discharge": fim_motor_discharge.astype(int),
+        "FIM Cognitive at Discharge": fim_cognitive_discharge.astype(int),
         "FIM Gain": fim_gain,
         "Meaningful Improvement": meaningful_improvement,
         "Return Home": return_home,
@@ -159,3 +173,43 @@ FEATURE_DEFS = [
     {"name": "Stair Climbing", "min": 0, "max": 3, "default": 1, "type": "ordinal"},
     {"name": "Orientation (time/place/person)", "min": 0, "max": 3, "default": 3, "type": "ordinal"},
 ]
+
+
+# Column names used by the model-comparison benchmark (models/config.py).
+MODEL_COLUMNS = {
+    "FIM Cognitive Subscale": "T0__fim_cognitive_subscale_at_entry",
+    "FIM Motor Subscale": "T0__fim_motor_subscale_at_entry",
+    "FIM Total Score": "T0__fim_total_score_at_entry",
+    "NIHSS Total Score": "T0__nihss_total_score",
+    "Walking Distance (m)": "T0__current_walking_distance_m",
+    "Stroke Laterality": "T0__stroke_laterality_left_right_bilateral",
+    "Stroke Type": "T0__stroke_type_ischemic_hemorrhagic",
+    "Thrombectomy": "T0__thrombectomy_performed_yes_no",
+    "Neglect Severity": "T0__neglect_severity",
+    "Aphasia Severity": "T0__aphasia_severity",
+    "Arm Hemiparesis": "T0__arm_hemiparesis",
+    "Leg Hemiparesis": "T0__leg_hemiparesis",
+    "Walking Ability": "T0__walking_ability_at_entry",
+    "Continence Status": "T0__continence_status_at_entry",
+    "Personal Hygiene": "T0__personal_hygiene_at_entry",
+    "CIRS Total Score": "T0__cirs_total_score",
+    "Primary Diagnosis (ICD)": "T0__primary_diagnosis_icd",
+    "Pre-stroke Walking (m)": "T0__pre_stroke_walking_distance_m",
+    "Stair Climbing": "T0__stair_climbing_ability_at_entry",
+    "Orientation (time/place/person)": "T0__orientation",
+    "FIM Total at Discharge": "OUTCOME__fim_total_at_discharge",
+    "FIM Motor at Discharge": "OUTCOME__fim_motor_at_discharge_target",
+    "FIM Cognitive at Discharge": "OUTCOME__fim_cognitive_at_discharge_target",
+    "FIM Gain": "OUTCOME__fim_gain_discharge__minus__entry",
+    "Return Home": "OUTCOME__return_home_yes_no",
+}
+
+
+def to_model_frame(cohort: pd.DataFrame) -> pd.DataFrame:
+    """Convert a mock cohort to the numeric T0__/OUTCOME__ schema used by the benchmark."""
+    df = cohort[list(MODEL_COLUMNS)].copy()
+    for feat, options in CATEGORICAL_MAP.items():
+        df[feat] = df[feat].map({v: i for i, v in enumerate(options)})
+    df = df.rename(columns=MODEL_COLUMNS)
+    df.insert(0, "patient_id", [f"MOCK-{i + 1:03d}" for i in range(len(df))])
+    return df

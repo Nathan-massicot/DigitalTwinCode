@@ -15,3 +15,10 @@ wheels/
 
 # Clinical data (not for publication)
 data/Feature_prototype_ML_ready.csv
+
+# EDA folders (notebooks and outputs built on the clinical data)
+EDA_Brut/
+EDA_MLready/
+
+# Encrypted raw clinical data
+data/Daten_verschlüsselt/
